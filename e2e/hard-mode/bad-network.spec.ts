@@ -2,15 +2,8 @@ import type { Page } from '@playwright/test'
 import { expect, test } from './test'
 import { seedHistory } from './history'
 
-// Reference tests for the `bad-network` set: latency, flaky-network,
-// rate-limit, slow-history and toasts at once. They pass on every seed —
-// `npm run flake-score` runs them on all ten — without a single fixed sleep:
-// they wait for what the user would wait for, and let locator handlers and
-// the fake clock deal with interruptions.
-
 test.use({ hardMode: { flags: 'bad-network' } })
 
-// Funny mode answers by the first letter of the message.
 const CHAT = [
   { send: 'Bananas', reply: /^Bananas are just shy yellow kayaks/ },
   { send: 'Cats', reply: /^Cats believe “close enough”/ },
@@ -18,7 +11,6 @@ const CHAT = [
   { send: 'Error', reply: /^Error 418/ },
 ]
 
-// A reply can take up to 4 s, and a dropped send costs one more round trip.
 const REPLY_TIMEOUT = 15_000
 
 /**
@@ -42,7 +34,6 @@ async function handleInterruptions(page: Page) {
 }
 
 async function send(page: Page, text: string) {
-  // The input stays disabled while a reply is on its way; fill() waits for it.
   const input = page.getByPlaceholder('Type a message…')
   await input.fill(text)
   await input.press('Enter')
@@ -60,7 +51,6 @@ test('every message gets exactly one reply, however the network behaves', async 
     await expect(replies.nth(i)).toHaveText(reply)
   }
 
-  // Retries must not duplicate anything, and nothing is left undelivered.
   await expect(page.getByTestId('message-user')).toHaveCount(CHAT.length)
   await expect(page.getByText('Not delivered', { exact: true })).toHaveCount(0)
 })
@@ -70,24 +60,18 @@ test('a short-lived toast confirms the send', async ({ page }) => {
   await page.goto('/')
   await send(page, 'Bananas')
 
-  // The toast lives for 1.5 s once the reply lands. The assertion is already
-  // polling by then, so it doesn't matter how long the reply took.
   const toast = page.getByRole('status').getByText('Message sent')
   await expect(toast).toBeVisible({ timeout: REPLY_TIMEOUT })
   await expect(toast).toBeHidden()
 })
 
 test.describe('a send the network drops', () => {
-  // On seed 2 the very first send fails. Pinning the seed turns "sometimes"
-  // into "every time", so this test can look at the failure itself — and
-  // it's the same scenario on every Flake Score seed.
   test.use({ hardMode: { flags: 'bad-network', seed: 2 } })
 
   test('is marked as not delivered and goes through on Retry', async ({ page }) => {
     await page.goto('/')
     await send(page, 'Bananas')
 
-    // exact: the error line below says "message not delivered" too.
     const notDelivered = page.getByText('Not delivered', { exact: true })
     await expect(notDelivered).toBeVisible({ timeout: REPLY_TIMEOUT })
     await page.getByRole('button', { name: 'Retry' }).click()
@@ -110,10 +94,6 @@ test('history loads behind skeletons and pages in on scroll', async ({ page }) =
 
   await expect(page.getByRole('status', { name: 'Loading history' })).toBeHidden()
 
-  // Five at a time, each page once the bottom of the list scrolls into view.
-  // The list scrolls inside its own box, so do what a user does: wheel over
-  // it. How many pages are in by the time the test looks depends on timing,
-  // so keep scrolling until all of them are.
   const items = page.getByRole('listitem')
   await expect(async () => {
     await items.last().hover()

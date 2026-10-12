@@ -1,9 +1,5 @@
 import { expect, test } from './test'
 
-// Reference tests for the hard mode plumbing every flag relies on: explicit
-// opt-in, the `data-hard-mode` marker, the console event journal and the
-// fixture's check that a run really used the config it asked for.
-
 test.describe('without the hardMode option', () => {
   test('the app runs in normal mode and the fixture stays out of it', async ({
     page,
@@ -50,7 +46,6 @@ test.describe('a test that overrides its own config', () => {
   test.use({ hardMode: { flags: 'toasts', seed: 7 } })
 
   test('is recorded as a mismatch, not a pass', async ({ page, hardModeJournal }) => {
-    // The URL beats stored config, so this page runs with hard mode off.
     await page.goto('/?hard=off')
 
     await expect(page.locator('html')).toHaveAttribute('data-hard-mode', 'off')
@@ -69,7 +64,6 @@ test.describe('event journal', () => {
     await expect.poll(types).toContain('popups:cookie-shown')
     await page.getByRole('button', { name: 'Accept all' }).click()
 
-    // The first promo shows 1–6 s after load (seed-determined).
     await page.clock.fastForward(7_000)
     await page.getByRole('button', { name: 'Maybe later' }).click()
     await expect.poll(types).toEqual(

@@ -1,8 +1,5 @@
 import type { Page } from '@playwright/test'
 
-// Message history lives in localStorage, so a test that needs some starts
-// with it already there instead of chatting it into existence first.
-
 const HISTORY_KEY = 'ai-assistant-chat-history-v1'
 
 export interface Exchange {
