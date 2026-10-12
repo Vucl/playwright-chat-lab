@@ -1,0 +1,76 @@
+/* The `iframe-widget` popups. Per-popup values (size, colours) arrive as
+   custom properties from variants.ts; positions are per variant below. */
+
+.hm-popup {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  z-index: 30;
+  width: min(var(--popup-width), calc(100vw - 2rem));
+  height: min(var(--popup-height), calc(100vh - 2rem));
+  border: 1px solid var(--popup-border);
+  border-top: 3px solid var(--popup-accent);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  background: var(--popup-bg);
+  box-shadow: 0 20px 50px -25px rgb(0 0 0 / 95%);
+  animation: hm-popup-in 180ms ease-out;
+}
+
+@keyframes hm-popup-in {
+  from {
+    opacity: 0;
+    scale: 0.96;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hm-popup {
+    animation: none;
+  }
+}
+
+.hm-popup__frame {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.hm-popup__close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: grid;
+  place-items: center;
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--popup-border);
+  border-radius: 50%;
+  background: var(--popup-bg);
+  color: var(--popup-accent);
+  font-size: 1.2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.hm-popup__close:hover {
+  background: var(--popup-accent);
+  color: var(--popup-on-accent);
+}
+
+/* Sits on top of the nav tabs (Search … Help), leaving only "Chat" clear. */
+.hm-popup--question {
+  top: 6.5rem;
+  right: auto;
+  bottom: auto;
+  left: max(1rem, calc(50% - 18rem));
+}
+
+/* `translate`, not `transform`, so the entry animation's `scale` adds to it. */
+.hm-popup--discount {
+  right: auto;
+  left: 50%;
+  translate: -50% 0;
+}

@@ -25,16 +25,40 @@ seed outside the range (they used to go up to 999 999 999) is folded into it
 — 42 → 2, 0 → 10 — so old links keep working, if as another scenario. With
 no seed anywhere, one is picked at random.
 
-All randomness is derived from the seed: same seed + same actions = same
-delays, failures and popup timing. The seed is shown as a "seed N" badge next
-to the toggle and logged to the console, so a failing run can be replayed.
+Flags pick *which* trouble is on; the seed only picks the numbers inside it.
+Same seed + same actions = same delays, failures and order. The seed is shown
+as a "seed N" badge next to the toggle and logged to the console, so a failing
+run can be replayed.
+
+What the seed changes, per flag — everything not listed here is the same on
+every seed:
+
+| Flag | Seed-determined |
+|---|---|
+| `latency` | How long each reply takes (0.1–4 s), per send |
+| `flaky-network` | Which sends fail |
+| `popups` | When the promo first shows up (7–10 s after load); later gaps follow from it |
+| `iframe-widget` | Ticket / question / discount code numbers (not the popups' timing) |
+| `unstable-dom` | The order of search results, per query |
+| `slow-history` | How long the first load and each next page take |
+
+So switching seeds usually changes nothing you can see at once: the same
+popups show up in the same places, and the difference is in how long things
+take and which send fails.
+
+**Changing the seed in the ⚙ panel** applies right away, no reload: the next
+reply already uses the new seed. But the page doesn't start over — a promo
+that hasn't shown yet restarts its timer from that moment, the iframe forms
+reload with new numbers (anything typed into them is lost), and sends keep
+counting from where they were. To replay a seed exactly as a test sees it,
+reload the page, or open `/?hard=<flags>&seed=<n>`.
 
 Every random value is a pure function of the seed and a key —
 `rand(seed, 'latency', attempt)` (see `hardMode/rng.ts`). There is no shared
 random stream, so the results don't depend on render count (StrictMode) or on
 the order in which features ask for numbers.
 
-A seed fixes *what* happens — which send fails, how long a reply takes, when
+A seed fixes the numbers — which send fails, how long a reply takes, when
 the promo shows — but not *when* that lands relative to a test's own actions:
 `latency` really waits, the promo counts from page load. A test racing one of
 those can pass and fail on the same seed. Flake Score's repeats tell the two
@@ -44,15 +68,15 @@ apart.
 
 | Flag | What happens | What it trains |
 |---|---|---|
-| `popups` | A cookie banner blocks the page until a choice is made. A promo modal appears 1–6 s after load (seed-determined), closes only via its own buttons, and keeps coming back — each gap twice as long as the previous one, capped at 20 s (e.g. 3 s, 6 s, 12 s, 20 s, 20 s…). Reset Chat asks for confirmation with a native `confirm()`. | `storageState` / `addInitScript`, `page.addLocatorHandler()`, `page.on('dialog')` |
-| `latency` | Replies take 0.1–4 s. | Avoiding `waitForTimeout`, assertion timeouts |
+| `popups` | A cookie banner blocks the page until a choice is made. A promo modal appears 7–10 s after load (seed-determined), closes only via its own buttons, and keeps coming back — each gap twice as long as the previous one, capped at 20 s (e.g. 8 s, 16 s, 20 s, 20 s…). Reset Chat asks for confirmation with a native `confirm()`. | `storageState` / `addInitScript`, `page.addLocatorHandler()`, `page.on('dialog')` |
+| `latency` | Replies take 0.1–4 s (seed-determined, per send). | Avoiding `waitForTimeout`, assertion timeouts |
 | `flaky-network` | Some sends fail: the message is marked "Not delivered" and a Retry button appears. Never fails twice in a row. | `expect.toPass()`, retry flows, no duplicates after retry |
 | `rate-limit` | More than 3 sends in 10 s starts a cooldown with a countdown; the input is disabled. | `page.clock` (`install`, `fastForward`) |
 | `toasts` | "Message sent" / "Chat cleared" notifications that vanish after 1.5 s. | Asserting on short-lived elements |
 | `unstable-dom` | The History list re-mounts every 3 s. Search results come back shuffled (stable per seed and query). | Locators vs element handles; `filter({ hasText })` vs `.nth()` |
 | `no-testids` | All `data-testid` attributes are removed (except on the hard mode controls). | Role, label and text locators |
 | `moving-target` | The Send button slides in when enabled; a "press Enter" tip covers it until dismissed. | Actionability checks, "element intercepts pointer events" |
-| `iframe-widget` | Three large forms, each inside its own iframe with its own "rate us" modal: support (bottom right), "What's your question?" (bottom left) and an email-for-10%-discount form (bottom centre). Each has a close button on the page (outside the iframe) that appears after 0 s, 2 s and 4 s respectively. Ticket numbers are seed-determined. | `frameLocator()` |
+| `iframe-widget` | Three popups, each a form inside its own iframe with its own "rate us" modal, and each in its own colour and size: a small blue support form (bottom right), an amber "Ask us" form over the nav tabs, and a big pink email-for-10%-discount form (bottom centre). They appear one after another — 0 s, 1.5 s and 3 s after load — and each gets a close button on the page (outside the iframe) 0 s, 2 s and 4 s after it appears. Ticket numbers are seed-determined. Timings, colours and sizes are in `widgets/iframePopup/variants.ts`. | `frameLocator()` |
 | `shadow-dom` | A `<feedback-widget>` custom element with its UI in an open shadow root. | Locators piercing shadow DOM (XPath does not) |
 | `files` | Attach a file to a message; export history as `chat-history.json`. | `setInputFiles()`, `waitForEvent('download')` |
 | `multi-tab` | "Open history in new window" button; history syncs live between tabs via `BroadcastChannel`. | `context.waitForEvent('page')`, multi-page tests |
@@ -100,8 +124,10 @@ The ⚙ panel has a button per set.
 - Timers (promo delay, rate-limit countdown, toasts, relative time) use
   `setTimeout` / `setInterval` / `Date`, so `page.clock` controls all of them.
   CSS animations (`moving-target`, skeleton shimmer) are not affected by it.
-- Pin a seed in the URL while debugging; drop it (or try several) to check
-  that a test doesn't depend on one lucky sequence.
+- Pin a seed in the URL while debugging (`/?hard=popups,latency&seed=3`);
+  drop it (or try several) to check that a test doesn't depend on one lucky
+  sequence. After changing the seed in the ⚙ panel, reload to watch that
+  seed from the start (see [Seed and determinism](#seed-and-determinism)).
 
 ## Events, marker and the test fixture
 
@@ -114,13 +140,14 @@ runner can check what it actually ran with.
   in DevTools by default, still delivered to `page.on('console')`):
 
   ```
-  [hard mode] event popups:promo-shown {"iteration":0,"afterMs":3120}
+  [hard mode] event popups:promo-shown {"iteration":0,"afterMs":8120}
   ```
 
   `config` is emitted on every page load and every change, enabled or not.
   The others: `latency`, `flaky-network:failed`, `rate-limit:hit`,
   `toasts:shown`, `popups:cookie-shown`, `popups:cookie-decided`,
-  `popups:promo-shown`, `popups:promo-closed`. The last 200 are also kept in
+  `popups:promo-shown`, `popups:promo-closed`, `iframe-widget:shown`,
+  `iframe-widget:closed`. The last 200 are also kept in
   `window.__hardMode.events` for poking at by hand (reset on every load).
 - **Turning it on in a test — always explicit.** Lessons and other tests run
   in normal mode and never touch hard mode. A hard mode test imports `test`
@@ -223,7 +250,7 @@ an overlay. They're public: never renamed, see `hardMode/dismissal.ts`.
 | `hardMode/withHardMode.ts` | Wraps the reply source with latency, flaky network and rate limit |
 | `hardMode/HardModeToggle.tsx` | Toggle, seed badge and flag panel |
 | `hardMode/overlays/` | Cookie banner, promo modal, toasts |
-| `hardMode/widgets/` | Support/question/discount iframes, shadow-DOM feedback widget |
+| `hardMode/widgets/` | Shadow-DOM feedback widget; `iframePopup/` — the support/question/discount popups (component, styles, srcdoc page, `variants.ts` config) |
 | `hardMode/promoSchedule.ts` | Promo modal delays: seeded first delay, doubling after each close, capped at 20 s |
 | `hardMode/relativeTime.ts` | "N minutes ago" and day labels |
 | `hardMode/telemetry.ts` | Event lines, the `data-hard-mode` marker, `window.__hardMode` — shared with the e2e fixture |

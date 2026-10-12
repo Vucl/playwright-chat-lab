@@ -1,4 +1,5 @@
-import SupportWidget from '../widgets/SupportWidget'
+import IframePopup from '../widgets/iframePopup/IframePopup'
+import { POPUP_VARIANTS } from '../widgets/iframePopup/variants'
 import { useHardMode } from '../useHardMode'
 import CookieBanner from './CookieBanner'
 import PromoModal from './PromoModal'
@@ -9,13 +10,8 @@ export default function OverlayRoot() {
 
   return (
     <>
-      {isOn('iframe-widget') && (
-        <>
-          <SupportWidget />
-          <SupportWidget variant="question" />
-          <SupportWidget variant="discount" />
-        </>
-      )}
+      {isOn('iframe-widget') &&
+        POPUP_VARIANTS.map((variant) => <IframePopup key={variant} variant={variant} />)}
       {isOn('popups') && (
         <>
           <CookieBanner />
