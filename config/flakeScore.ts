@@ -108,7 +108,10 @@ export function scoreRuns(runs: Run[], seeds: number[]): FlakeScore {
       seedFailure(Number(seed), seedRuns),
     )
     const allFailed = bySeed.every((s) => s.failed === s.runs)
-    if (allFailed && bySeed.length === seeds.length) {
+    // With a single seed (a replay) "fails everywhere" and "fails on this
+    // seed" look the same; call it seed-dependent, which is what a replay
+    // is for.
+    if (allFailed && bySeed.length === seeds.length && seeds.length > 1) {
       result.broken.push({ test: name, flags, seeds: bySeed })
       continue
     }

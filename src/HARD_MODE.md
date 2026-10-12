@@ -231,6 +231,7 @@ an overlay. They're public: never renamed, see `hardMode/dismissal.ts`.
 | `../e2e/hard-mode/test.ts` | Fixture for hard mode tests: the `hardMode` option turns it on, plus config check and event journal |
 | `../e2e/hard-mode/storage.ts` | Stored-config JSON and `replayUrl()` — Node-safe |
 | `../e2e/hard-mode/*.spec.ts` | The hard mode suite — what `npm run flake-score` runs by default |
+| `../e2e/hard-mode/history.ts` | `seedHistory()` — puts message history in `localStorage` before the app loads |
 | `../config/flake-score.config.ts` | Wraps a suite's config: one project per seed (sets `hardSeed` only), `vite preview`, no retries |
 | `../config/flakeScore.ts`, `flakeScoreReporter.ts` | Scoring and the three kinds of failure; writes the report |
 | `../scripts/flake-score.ts` | `npm run flake-score` — options, seeds, exit code |
