@@ -29,8 +29,8 @@ export const HARD_MODE_FLAGS = [
   },
   {
     id: 'iframe-widget',
-    label: 'Support iframe',
-    hint: 'A support form (with its own popup) inside an iframe',
+    label: 'Iframe popups',
+    hint: 'Three forms in iframes pop up one after another, each with a delayed close button',
   },
   { id: 'shadow-dom', label: 'Shadow DOM widget', hint: 'Feedback widget in a shadow root' },
   { id: 'files', label: 'Files', hint: 'Attach a file to a message; export history as JSON' },

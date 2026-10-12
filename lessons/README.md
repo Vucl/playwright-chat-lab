@@ -3,6 +3,9 @@
 11 lessons, "what is Playwright" to CI-ready end-to-end tests, using this
 repo's own chat app as the system under test.
 
+After the 11 lessons: the [Hard mode track](hard-mode/README.md) — the same
+app, with popups, a bad network and a tricky DOM turned on.
+
 ## Setup
 
 ```bash

@@ -96,6 +96,15 @@ describe('scoreRuns', () => {
     expect(badgeJson(score, 'bad-network')).toMatchObject({ message: 'n/a', color: 'lightgrey' })
   })
 
+  it('a replay of one seed reports a failure as seed-dependent, not broken', () => {
+    const score = scoreRuns(
+      [1, 2, 3].map(() => ({ test: 'a.spec.ts:1 › seedy', seed: 2, passed: false, flags: 'bad-network' })),
+      [2],
+    )
+    expect(score.broken).toEqual([])
+    expect(score.seedDependent.map((t) => t.seeds.map((s) => s.seed))).toEqual([[2]])
+  })
+
   it('does not call a test broken when it never ran on some seeds', () => {
     const score = scoreRuns(runs('a.spec.ts:1 › partial', ['f', 'f']), SEEDS)
     expect(score.broken).toEqual([])

@@ -1,4 +1,4 @@
-export const PROMO_FIRST_DELAY_MS = { min: 1000, max: 6000 }
+export const PROMO_FIRST_DELAY_MS = { min: 7000, max: 10000 }
 export const PROMO_GROWTH = 2
 export const PROMO_MAX_DELAY_MS = 20_000
 
