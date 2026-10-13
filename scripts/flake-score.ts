@@ -54,7 +54,6 @@ function intOption(name: string, fallback: number, min = 1): number {
   return value
 }
 
-// Which config: explicit, or guessed from the filters like .github/workflows/e2e.yml does.
 const config =
   options.get('config') ??
   (filters.length > 0 && filters.every((f) => f.startsWith('lessons/'))
@@ -62,7 +61,6 @@ const config =
     : 'playwright.config.ts')
 if (!existsSync(path.resolve(config))) fail(`config not found: ${config}`)
 
-// Which seeds. There are only ten, so by default every one of them runs.
 let seeds: number[]
 if (options.has('seed-list')) {
   seeds = [...new Set((options.get('seed-list') ?? '').split(',').map(Number))]
@@ -73,7 +71,6 @@ if (options.has('seed-list')) {
   seeds = ALL_SEEDS.slice(0, count)
 }
 
-// No filters and no config of your own: the hard mode suite.
 const targets = filters.length === 0 && !options.has('config') ? ['e2e/hard-mode/'] : filters
 
 const repeats = intOption('repeats', 2)
@@ -88,7 +85,6 @@ const replayArgs = [
   .filter(Boolean)
   .join(' ')
 
-// A report left over from an earlier run must never be mistaken for this one.
 rmSync(out, { recursive: true, force: true })
 
 const result = spawnSync(

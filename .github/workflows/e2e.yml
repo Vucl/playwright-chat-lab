@@ -69,8 +69,6 @@ jobs:
           ref: refs/pull/${{ github.event.issue.number }}/head
           persist-credentials: false
 
-      # No `cache: npm` — a cache written from a PR's code could be restored
-      # into the trusted workflows.
       - name: Set up Node.js
         if: steps.parse.outputs.spec != ''
         uses: actions/setup-node@v4

@@ -1,11 +1,5 @@
 name: flake-score-comment
 
-# Posts the report of a finished flake-score run as a PR comment. Runs in
-# this repository's trusted context and never checks out or executes the
-# PR's code: it only reads the uploaded artifact and posts its report as
-# untrusted text. The PR number comes from the artifact's name, which the
-# trusted workflow file sets — never from the artifact's contents.
-
 on:
   workflow_run:
     workflows: [flake-score]

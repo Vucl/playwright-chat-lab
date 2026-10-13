@@ -52,8 +52,6 @@ jobs:
           ref: refs/pull/${{ github.event.issue.number }}/head
           persist-credentials: false
 
-      # No `cache: npm` — a cache written from a PR's code could be restored
-      # into the trusted workflows.
       - name: Set up Node.js
         if: steps.parse.outputs.path != ''
         uses: actions/setup-node@v4
@@ -82,8 +80,6 @@ jobs:
             echo "### Flake Score: the run failed before producing a score — see the workflow log." > flake-score-report/flake-score.md
           fi
 
-      # The PR number travels in the artifact's name, which this file sets
-      # from the event — not in a file, which the PR's code could rewrite.
       - name: Upload report
         if: ${{ always() && steps.parse.outputs.path != '' }}
         uses: actions/upload-artifact@v4
