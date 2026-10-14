@@ -30,10 +30,10 @@ describe('resolveConfig', () => {
   })
 
   it('stays off when stored config says disabled', () => {
-    const stored = JSON.stringify({ enabled: false, flags: ['popups'], seed: 5 })
+    const stored = JSON.stringify({ enabled: false, flags: ['latency'], seed: 5 })
     expect(resolveConfig('', stored, seed)).toEqual({
       enabled: false,
-      flags: ['popups'],
+      flags: ['latency'],
       seed: 5,
     })
   })
@@ -47,8 +47,8 @@ describe('resolveConfig', () => {
   })
 
   it('takes a comma list and drops unknown flags', () => {
-    expect(resolveConfig('?hard=popups,nope,latency&seed=1', null, seed).flags).toEqual([
-      'popups',
+    expect(resolveConfig('?hard=toasts,nope,latency&seed=1', null, seed).flags).toEqual([
+      'toasts',
       'latency',
     ])
   })
@@ -95,8 +95,14 @@ describe('parseFlags', () => {
 describe('parseStored', () => {
   it('filters out unknown flags', () => {
     expect(
-      parseStored(JSON.stringify({ enabled: true, flags: ['popups', 'x', 3], seed: 1 })),
-    ).toEqual({ enabled: true, flags: ['popups'], seed: 1 })
+      parseStored(JSON.stringify({ enabled: true, flags: ['latency', 'x', 3], seed: 1 })),
+    ).toEqual({ enabled: true, flags: ['latency'], seed: 1 })
+  })
+
+  it('expands the old `popups` flag to the flags it was split into', () => {
+    expect(
+      parseStored(JSON.stringify({ enabled: true, flags: ['popups', 'promo', 'latency'], seed: 1 })),
+    ).toEqual({ enabled: true, flags: ['cookie-banner', 'promo', 'native-confirm', 'latency'], seed: 1 })
   })
 })
 
@@ -113,7 +119,9 @@ describe('flag sets', () => {
 
   it('mixes sets and single flags without duplicates', () => {
     expect(parseFlags('popups,tricky-dom,no-testids')).toEqual([
-      'popups',
+      'cookie-banner',
+      'promo',
+      'native-confirm',
       'unstable-dom',
       'no-testids',
       'moving-target',
@@ -159,7 +167,7 @@ describe('seed range', () => {
 
   it('keeps an old saved config working instead of turning hard mode off', () => {
     const stored = JSON.stringify({ enabled: true, flags: ['popups'], seed: 4242 })
-    expect(parseStored(stored)).toEqual({ enabled: true, flags: ['popups'], seed: 2 })
+    expect(parseStored(stored)).toEqual({ enabled: true, flags: ['cookie-banner', 'promo', 'native-confirm'], seed: 2 })
     expect(resolveConfig('?hard=popups&seed=42', null, seed).seed).toBe(2)
   })
 

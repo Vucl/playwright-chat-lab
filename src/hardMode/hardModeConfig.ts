@@ -1,8 +1,18 @@
 export const HARD_MODE_FLAGS = [
   {
-    id: 'popups',
-    label: 'Blocking popups',
-    hint: 'Cookie banner, a recurring promo modal (each gap doubles, up to 20 s), confirm() on Reset',
+    id: 'cookie-banner',
+    label: 'Cookie banner',
+    hint: 'Blocks the page until you accept or reject',
+  },
+  {
+    id: 'promo',
+    label: 'Promo modal',
+    hint: 'Shows up 7–10 s after load and keeps coming back (each gap doubles, up to 20 s)',
+  },
+  {
+    id: 'native-confirm',
+    label: 'Native confirm()',
+    hint: 'Reset Chat asks with window.confirm() first',
   },
   { id: 'latency', label: 'Latency', hint: 'Replies take 0.1–4 s' },
   {
@@ -68,6 +78,11 @@ export const HARD_MODE_SETS = [
     id: 'tricky-dom',
     label: 'Tricky DOM',
     flags: ['unstable-dom', 'no-testids', 'moving-target', 'iframe-widget', 'shadow-dom'],
+  },
+  {
+    id: 'popups',
+    label: 'Blocking popups',
+    flags: ['cookie-banner', 'promo', 'native-confirm'],
   },
 ] as const satisfies readonly { id: string; label: string; flags: readonly HardModeFlag[] }[]
 
@@ -150,8 +165,17 @@ export function parseStored(raw: string | null): HardModeConfig | null {
     if (typeof data !== 'object' || data === null) return null
     const seed = coerceSeed(String(data.seed ?? ''))
     if (seed === null) return null
+    // `popups` used to be a single flag: a stored one expands to its set.
     const flags = Array.isArray(data.flags)
-      ? data.flags.filter((f): f is HardModeFlag => typeof f === 'string' && isFlag(f))
+      ? [
+          ...new Set(
+            data.flags
+              .flatMap((f): readonly unknown[] =>
+                typeof f === 'string' ? (findSet(f)?.flags ?? [f]) : [f],
+              )
+              .filter((f): f is HardModeFlag => typeof f === 'string' && isFlag(f)),
+          ),
+        ]
       : []
     return { enabled: data.enabled === true, flags, seed }
   } catch {

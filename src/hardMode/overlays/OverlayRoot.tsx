@@ -12,12 +12,8 @@ export default function OverlayRoot() {
     <>
       {isOn('iframe-widget') &&
         POPUP_VARIANTS.map((variant) => <IframePopup key={variant} variant={variant} />)}
-      {isOn('popups') && (
-        <>
-          <CookieBanner />
-          <PromoModal />
-        </>
-      )}
+      {isOn('cookie-banner') && <CookieBanner />}
+      {isOn('promo') && <PromoModal />}
       {isOn('toasts') && (
         <div className="hm-toasts" role="status" aria-live="polite">
           {toasts.map((t) => (

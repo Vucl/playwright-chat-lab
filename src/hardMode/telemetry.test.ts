@@ -64,9 +64,9 @@ describe('emitEvent / publishConfig', () => {
 
   it('sets the <html> marker and keeps events across config changes', () => {
     vi.spyOn(console, 'debug').mockImplementation(() => undefined)
-    publishConfig({ enabled: true, seed: 1, flags: ['popups'] })
+    publishConfig({ enabled: true, seed: 1, flags: ['cookie-banner'] })
     emitEvent('popups:cookie-shown')
-    publishConfig({ enabled: false, seed: 1, flags: ['popups'] })
+    publishConfig({ enabled: false, seed: 1, flags: ['cookie-banner'] })
 
     expect(document.documentElement.dataset.hardMode).toBe('off')
     expect(window.__hardMode?.enabled).toBe(false)
