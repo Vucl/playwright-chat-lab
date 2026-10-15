@@ -139,7 +139,7 @@ export default function ChatWindow() {
 
   const handleReset = useCallback(async () => {
     if (
-      isOn('popups') &&
+      isOn('native-confirm') &&
       !window.confirm('Reset the chat? Messages on screen will be cleared.')
     ) {
       return

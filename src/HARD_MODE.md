@@ -26,7 +26,9 @@ A seed fixes the numbers, not timing relative to the test: a test racing
 
 | Flag | What happens | What it trains |
 |---|---|---|
-| `popups` | Cookie banner blocks the page; a promo modal appears 7–10 s after load and keeps coming back (8 s, 16 s, 20 s…); Reset Chat uses native `confirm()`. | `addInitScript`, `addLocatorHandler()`, `page.on('dialog')` |
+| `cookie-banner` | Cookie banner blocks the page until you accept or reject. | `addInitScript`, `storageState` |
+| `promo` | A promo modal appears 7–10 s after load and keeps coming back (each gap doubles, up to 20 s). | `addLocatorHandler()`, `page.clock` |
+| `native-confirm` | Reset Chat asks with native `confirm()` first. | `page.on('dialog')` |
 | `latency` | Replies take 0.1–4 s. | No `waitForTimeout`, assertion timeouts |
 | `flaky-network` | Some sends fail with "Not delivered" + Retry. Never twice in a row. | `expect.toPass()`, retry flows |
 | `rate-limit` | >3 sends in 10 s → cooldown, input disabled. | `page.clock` |
@@ -46,10 +48,13 @@ A seed fixes the numbers, not timing relative to the test: a test racing
 
 | Set | Flags |
 |---|---|
+| `popups` | `cookie-banner`, `promo`, `native-confirm` |
 | `bad-network` | `latency`, `flaky-network`, `rate-limit`, `slow-history`, `toasts` |
 | `tricky-dom` | `unstable-dom`, `no-testids`, `moving-target`, `iframe-widget`, `shadow-dom` |
 
-A set's contents never change; `all` grows with new flags.
+A set's contents never change; `all` grows with new flags. `popups` used to
+be a single flag: a stored config that still has it gets the three flags it
+was split into.
 
 ## Writing a test
 
