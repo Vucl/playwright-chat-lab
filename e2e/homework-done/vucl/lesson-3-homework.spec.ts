@@ -7,8 +7,7 @@ test.describe('Homework 3: Assertions & auto-waiting', () => {
 
     const deleteButton = page.getByTestId('delete-history-button')
     const items = page.locator('li.history-day__item')
-
-    expect(await deleteButton.isDisabled()).toBe(true)
+    await expect(deleteButton).toBeDisabled()
     expect(await items.count()).toBe(0)
 
     await page.goto('/')
