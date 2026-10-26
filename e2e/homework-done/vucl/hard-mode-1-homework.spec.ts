@@ -15,6 +15,7 @@ async function sendAndAwaitReply(page: Page, text: string) {
   await expect(input).toBeEnabled({ timeout: 15_000 })
   await input.fill(text)
   await page.getByTestId('send-button').click()
+
   await expect(replies).toHaveCount(before + 1, { timeout: 10_000 })
 }
 
@@ -51,7 +52,7 @@ test.describe('Hard mode homework 1: Popups that get in the way', () => {
       .getByRole('button', { name: 'Skip' })
       .click()
 
-    await expect(discount.getByRole('status')).toHaveText(/Discount code/)
+    await expect(discount.getByRole('status')).toHaveText(/^Discount code #\d{4} sent\.$/)
 
     for (const title of IFRAME_TITLES) {
       await page.getByRole('button', { name: `Close ${title.toLowerCase()}` }).click()
@@ -64,7 +65,12 @@ test.describe('Hard mode homework 1: Popups that get in the way', () => {
       'Gravity is just the Earth being clingy in a scientifically dignified way.',
     )
 
-    page.on('dialog', (dialog) => dialog.accept())
+      page.once('dialog', async (dialog) => {
+        expect(dialog.type()).toBe('confirm')
+        expect(dialog.message()).toBe(RESET_CONFIRM)
+        await dialog.accept()
+      })
+
     await page.getByTestId('reset-button').click()
     await expect(page.getByTestId('message-user')).toHaveCount(0)
     await expect(page.getByTestId('message-assistant')).toHaveCount(0)
@@ -111,7 +117,7 @@ test.describe('Hard mode homework 1: Popups that get in the way', () => {
       'If debugging was easy, it would be called “catching butterflies.”',
     )
 
-    expect(promoRuns).toBeGreaterThan(0)
+    expect(promoRuns).toBe(3)
     await expect(page.locator('iframe')).toHaveCount(0)
 
     await page.getByTestId('reset-button').click()
